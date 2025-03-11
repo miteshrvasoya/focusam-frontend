@@ -31,8 +31,8 @@ export default function CreateInvoicePage() {
   })
 
   // API data
-  const [isLoadingCustomers, setIsLoadingCustomers] = useState(true)
-  const [isLoadingVehicles, setIsLoadingVehicles] = useState(true)
+  const [isLoadingCustomers, setIsLoadingCustomers] = useState(false)
+  const [isLoadingVehicles, setIsLoadingVehicles] = useState(false)
   const [customers, setCustomers] = useState<Customer[]>([])
   const [selectedCustomer, setSelectedCustomer] = useState("");
   const [selectedVehicle, setSelectedVehicle] = useState("");
@@ -41,25 +41,25 @@ export default function CreateInvoicePage() {
   const [customerSearchTerm, setCustomerSearchTerm] = useState("");
 
   // Fetch customers and vehicles
-  useEffect(() => {
-    const fetchInitialData = async () => {
-      try {
-        const customersRes = await customersApi.getAll(1, 100)
-        setCustomers(customersRes.data.items)
-        setIsLoadingCustomers(false)
+  // useEffect(() => {
+  //   const fetchInitialData = async () => {
+  //     try {
+  //       const customersRes = await customersApi.getAll(1, 100)
+  //       setCustomers(customersRes.data.items)
+  //       setIsLoadingCustomers(false)
 
-        const vehiclesRes = await vehiclesApi.getAll(1, 100)
-        setVehicles(vehiclesRes.data.items)
-        setIsLoadingVehicles(false)
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load initial data")
-        setIsLoadingCustomers(false)
-        setIsLoadingVehicles(false)
-      }
-    }
+  //       const vehiclesRes = await vehiclesApi.getAll(1, 100)
+  //       setVehicles(vehiclesRes.data.items)
+  //       setIsLoadingVehicles(false)
+  //     } catch (err) {
+  //       setError(err instanceof Error ? err.message : "Failed to load initial data")
+  //       setIsLoadingCustomers(false)
+  //       setIsLoadingVehicles(false)
+  //     }
+  //   }
 
-    fetchInitialData()
-  }, [])
+  //   fetchInitialData()
+  // }, [])
 
   // Filter vehicles by selected customer
   useEffect(() => {
