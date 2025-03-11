@@ -109,7 +109,7 @@ export const customersApi = {
   },
 
   create: (customer: CreateCustomerDto) =>
-    fetchApi<Customer>("/customers", {
+    fetchApi<Customer>("/customer", {
       method: "POST",
       body: JSON.stringify(customer),
     }),

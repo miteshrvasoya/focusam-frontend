@@ -8,6 +8,8 @@ import { ArrowLeft, Plus, Trash2 } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -33,12 +35,14 @@ export default function CreateInvoicePage() {
   // API data
   const [isLoadingCustomers, setIsLoadingCustomers] = useState(false)
   const [isLoadingVehicles, setIsLoadingVehicles] = useState(false)
-  const [customers, setCustomers] = useState<Customer[]>([])
+  const [customers, setCustomers] = useState<any>({})
   const [selectedCustomer, setSelectedCustomer] = useState("");
   const [selectedVehicle, setSelectedVehicle] = useState("");
   const [vehicles, setVehicles] = useState<Vehicle[]>([])
   const [filteredVehicles, setFilteredVehicles] = useState<Vehicle[]>([])
   const [customerSearchTerm, setCustomerSearchTerm] = useState("");
+  const [showAddCustomerModal, setShowAddCustomerModal] = useState(false);
+  const [newCustomer, setNewCustomer] = useState({ name: "", phone: "", email: "" });
 
   // Fetch customers and vehicles
   // useEffect(() => {
@@ -194,7 +198,7 @@ export default function CreateInvoicePage() {
 
           console.log("data :", data);
           if (response.success) {
-            setCustomers([{ ...data }]);
+            setCustomers({ ...data });
             console.log("Customers :", customers);
           }
         } catch (error) {
@@ -239,6 +243,18 @@ export default function CreateInvoicePage() {
   useEffect(() => {
     console.log("New Vehicles: ", vehicles)
   }, [vehicles])
+
+  // Function to add new customer
+  const handleAddCustomer = async () => {
+    const response = await customersApi.create(newCustomer);
+
+    if (response.success) {
+      let data = response.data;
+      setCustomers({ ...data });
+      updateFormField("customerId", data.id); // Auto-select new customer
+      setShowAddCustomerModal(false);
+    }
+  };
 
   const subtotal = calculateSubtotal()
   const tax = calculateTax(subtotal)
@@ -301,26 +317,42 @@ export default function CreateInvoicePage() {
                     />
 
                     <Label htmlFor="customerId">Select Customer</Label>
-                    <Select
-                      value={invoiceData.customerId}
-                      onValueChange={(value) => updateFormField("customerId", value)}
-                      required
-                    >
+                    <Select value={invoiceData.customerId} onValueChange={(value) => updateFormField("customerId", value)} required>
                       <SelectTrigger id="customerId">
                         <SelectValue placeholder={isLoadingCustomers ? "Loading..." : "Select customer"} />
                       </SelectTrigger>
                       <SelectContent>
-                        {customers.length > 0 ? (
-                          customers.map((customer) => (
-                            <SelectItem key={customer.id} value={customer.id}>
-                              {customer.name} ({customer.phone})
-                            </SelectItem>
-                          ))
+                        {Object.keys(customers).length ? (
+                          <SelectItem key={customers.id} value={customers.id}>
+                            {customers.name}
+                          </SelectItem>
                         ) : (
-                          <p className="p-2 text-gray-500">No customers found</p>
+                          <div className="p-2 text-gray-500">
+                            No customers found
+                            <Button variant="link" className="text-blue-500" onClick={() => setShowAddCustomerModal(true)}>
+                              Add New Customer
+                            </Button>
+                          </div>
                         )}
                       </SelectContent>
                     </Select>
+
+                    {/* Add Customer Modal */}
+                    <Dialog open={showAddCustomerModal} onOpenChange={setShowAddCustomerModal}>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Add New Customer</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-3">
+                          <Input placeholder="Name" value={newCustomer.name} onChange={(e) => setNewCustomer({ ...newCustomer, name: e.target.value })} />
+                          <Input placeholder="Phone" value={newCustomer.phone} onChange={(e) => setNewCustomer({ ...newCustomer, phone: e.target.value })} />
+                          <Input placeholder="Email" value={newCustomer.email} onChange={(e) => setNewCustomer({ ...newCustomer, email: e.target.value })} />
+                        </div>
+                        <DialogFooter>
+                          <Button onClick={handleAddCustomer}>Save</Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="vehicleId">Vehicle</Label>
