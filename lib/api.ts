@@ -141,7 +141,7 @@ export const vehiclesApi = {
   getById: (id: string) => fetchApi<Vehicle>(`/vehicles/${id}`),
 
   create: (vehicle: CreateVehicleDto) =>
-    fetchApi<Vehicle>("/vehicles", {
+    fetchApi<Vehicle>("/vehicle", {
       method: "POST",
       body: JSON.stringify(vehicle),
     }),

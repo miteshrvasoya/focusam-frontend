@@ -168,13 +168,13 @@ export interface UpcomingService {
 export interface CreateVehicleDto {
   make: string
   model: string
-  year: string
-  registration: string
-  vin: string
-  color: string
-  odometer: string
-  ownerId: string
-  status: "active" | "maintenance" | "inactive"
+  year?: string
+  registration?: string
+  vin?: string
+  color?: string
+  odometer?: string
+  customerId: string
+  status?: "active" | "maintenance" | "inactive"
   notes?: string
 }
 

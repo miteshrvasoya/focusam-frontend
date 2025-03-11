@@ -38,11 +38,14 @@ export default function CreateInvoicePage() {
   const [customers, setCustomers] = useState<any>({})
   const [selectedCustomer, setSelectedCustomer] = useState("");
   const [selectedVehicle, setSelectedVehicle] = useState("");
-  const [vehicles, setVehicles] = useState<Vehicle[]>([])
+  const [vehicles, setVehicles] = useState<any>([])
   const [filteredVehicles, setFilteredVehicles] = useState<Vehicle[]>([])
   const [customerSearchTerm, setCustomerSearchTerm] = useState("");
   const [showAddCustomerModal, setShowAddCustomerModal] = useState(false);
   const [newCustomer, setNewCustomer] = useState({ name: "", phone: "", email: "" });
+  const [showAddVehicleModal, setShowAddVehicleModal] = useState(false);
+  const [newVehicle, setNewVehicle] = useState({ make: "", model: "", year: "", plateNumber: "" });
+
 
   // Fetch customers and vehicles
   // useEffect(() => {
@@ -256,6 +259,30 @@ export default function CreateInvoicePage() {
     }
   };
 
+  // Function to add new vehicle
+  const handleAddVehicle = async () => {
+    fetch("/api/vehicles", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...newVehicle, customerId: invoiceData.customerId }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        setVehicles([...vehicles, data]);
+        updateFormField("vehicleId", data.id); // Auto-select new vehicle
+        setShowAddVehicleModal(false);
+      });
+
+      const response = await customersApi.create(newCustomer);
+
+    if (response.success) {
+      let data = response.data;
+      setVehicles([...vehicles, data]);
+        updateFormField("vehicleId", data.id); // Auto-select new vehicle
+        setShowAddVehicleModal(false);
+    }
+  };
+
   const subtotal = calculateSubtotal()
   const tax = calculateTax(subtotal)
   const total = subtotal + tax
@@ -359,26 +386,46 @@ export default function CreateInvoicePage() {
                     <Select
                       value={invoiceData.vehicleId || ""}
                       onValueChange={(value) => updateFormField("vehicleId", value)}
-                      disabled={!invoiceData.customerId || vehicles.length === 0}
                       required
                     >
                       <SelectTrigger id="vehicleId">
-                        <SelectValue
-                          placeholder={invoiceData.vehicleId ? undefined : invoiceData.customerId ? "Select vehicle" : "Select customer first"}
-                        />
+                        <SelectValue placeholder={invoiceData.customerId ? "Select vehicle" : "Select customer first"} />
                       </SelectTrigger>
                       <SelectContent>
                         {vehicles.length > 0 ? (
                           vehicles.map((vehicle: any) => (
-                            <SelectItem key={vehicle.id} value={vehicle._id}>
+                            <SelectItem key={vehicle.id} value={vehicle.id}>
                               {vehicle.make} {vehicle.model} ({vehicle.year})
                             </SelectItem>
                           ))
                         ) : (
-                          <div className="p-2 text-gray-500">No Vehicles found</div>
+                          <div className="p-2 text-gray-500">
+                            No Vehicles found
+                            <Button variant="link" className="text-blue-500" onClick={() => setShowAddVehicleModal(true)}>
+                              Add New Vehicle
+                            </Button>
+                          </div>
                         )}
                       </SelectContent>
                     </Select>
+
+                    {/* Add Vehicle Modal */}
+                    <Dialog open={showAddVehicleModal} onOpenChange={setShowAddVehicleModal}>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Add New Vehicle</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-3">
+                          <Input placeholder="Make" value={newVehicle.make} onChange={(e) => setNewVehicle({ ...newVehicle, make: e.target.value })} />
+                          <Input placeholder="Model" value={newVehicle.model} onChange={(e) => setNewVehicle({ ...newVehicle, model: e.target.value })} />
+                          <Input placeholder="Year" value={newVehicle.year} onChange={(e) => setNewVehicle({ ...newVehicle, year: e.target.value })} />
+                          <Input placeholder="Plate Number" value={newVehicle.plateNumber} onChange={(e) => setNewVehicle({ ...newVehicle, plateNumber: e.target.value })} />
+                        </div>
+                        <DialogFooter>
+                          <Button onClick={handleAddVehicle}>Save</Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
                   </div>
 
                 </div>
