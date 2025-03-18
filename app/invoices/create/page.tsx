@@ -71,7 +71,7 @@ export default function CreateInvoicePage() {
   // Filter vehicles by selected customer
   useEffect(() => {
     if (invoiceData.customerId) {
-      const filtered = vehicles.filter((v) => v.ownerId === invoiceData.customerId)
+      const filtered = vehicles.filter((v: any) => v.ownerId === invoiceData.customerId)
       setFilteredVehicles(filtered)
     } else {
       setFilteredVehicles([])
@@ -261,25 +261,16 @@ export default function CreateInvoicePage() {
 
   // Function to add new vehicle
   const handleAddVehicle = async () => {
-    fetch("/api/vehicles", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...newVehicle, customerId: invoiceData.customerId }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        setVehicles([...vehicles, data]);
-        updateFormField("vehicleId", data.id); // Auto-select new vehicle
-        setShowAddVehicleModal(false);
-      });
-
-      const response = await customersApi.create(newCustomer);
+    console.log("Creating Vehicle 1");
+    const response = await vehiclesApi.create({ ...newVehicle, customerId: invoiceData.customerId as any });
+    
+    console.log("response:", response);
 
     if (response.success) {
       let data = response.data;
       setVehicles([...vehicles, data]);
-        updateFormField("vehicleId", data.id); // Auto-select new vehicle
-        setShowAddVehicleModal(false);
+      updateFormField("vehicleId", data.id); // Auto-select new vehicle
+      setShowAddVehicleModal(false);
     }
   };
 
@@ -394,7 +385,7 @@ export default function CreateInvoicePage() {
                       <SelectContent>
                         {vehicles.length > 0 ? (
                           vehicles.map((vehicle: any) => (
-                            <SelectItem key={vehicle.id} value={vehicle.id}>
+                            <SelectItem key={vehicle._id} value={vehicle._id}>
                               {vehicle.make} {vehicle.model} ({vehicle.year})
                             </SelectItem>
                           ))

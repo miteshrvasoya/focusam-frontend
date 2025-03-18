@@ -30,6 +30,7 @@ const defaultHeaders = {
 // Generic API request handler with error handling
 async function fetchApi<T>(endpoint: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
   try {
+    console.log("API BASE URL :", API_BASE_URL);
     const url = `${API_BASE_URL}${endpoint}`
     const response = await fetch(url, {
       ...options,
@@ -40,6 +41,8 @@ async function fetchApi<T>(endpoint: string, options: RequestInit = {}): Promise
     })
 
     const data = await response.json()
+
+    console.log("Response Data:", data);
 
     if (!response.ok) {
       throw new Error(data.message || "An error occurred")
@@ -140,11 +143,14 @@ export const vehiclesApi = {
 
   getById: (id: string) => fetchApi<Vehicle>(`/vehicles/${id}`),
 
-  create: (vehicle: CreateVehicleDto) =>
-    fetchApi<Vehicle>("/vehicle", {
+  create: (vehicle: CreateVehicleDto) => {
+
+    console.log("Fetching Create Vehivle API")
+    return fetchApi<Vehicle>("/vehicle", {
       method: "POST",
       body: JSON.stringify(vehicle),
-    }),
+    })
+  },
 
   update: (id: string, vehicle: UpdateVehicleDto) =>
     fetchApi<Vehicle>(`/vehicles/${id}`, {
