@@ -96,12 +96,9 @@ export const invoicesApi = {
 export const customersApi = {
   getAll: (page = 1, limit = 10, sortBy = "name", search?: string) => {
     const params = new URLSearchParams()
-    params.append("page", page.toString())
-    params.append("limit", limit.toString())
-    params.append("sortBy", sortBy)
     if (search) params.append("search", search)
 
-    return fetchApi<PaginatedResponse<Customer>>(`/customers?${params.toString()}`)
+    return fetchApi<PaginatedResponse<Customer>>(`/customer`)
   },
 
   getById: (id: string) => fetchApi<Customer>(`/customers/${id}`),

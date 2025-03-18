@@ -21,7 +21,7 @@ export default function CustomersPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [customersData, setCustomersData] = useState<PaginatedResponse<Customer> | null>(null)
+  const [customersData, setCustomersData] = useState<any>(null)
   const [isDeleting, setIsDeleting] = useState<string | null>(null)
 
   const itemsPerPage = 5
@@ -30,7 +30,9 @@ export default function CustomersPage() {
     setIsLoading(true)
     setError(null)
     try {
-      const response = await customersApi.getAll(currentPage, itemsPerPage, sortBy, searchTerm)
+      const response = await customersApi.getAll(currentPage, itemsPerPage, sortBy, searchTerm);
+
+      console.log("Response : ", response.data);
       setCustomersData(response.data)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load customers")
@@ -136,15 +138,15 @@ export default function CustomersPage() {
                   <TableHead>Customer ID</TableHead>
                   <TableHead>Name</TableHead>
                   <TableHead>Contact</TableHead>
-                  <TableHead>Vehicles</TableHead>
+                  {/* <TableHead>Vehicles</TableHead> */}
                   <TableHead>Last Visit</TableHead>
                   <TableHead>Total Spent</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {customersData && customersData.items.length > 0 ? (
-                  customersData.items.map((customer) => (
+                {customersData && customersData.length > 0 ? (
+                  customersData.map((customer: any) => (
                     <TableRow key={customer.id}>
                       <TableCell className="font-medium">{customer.id}</TableCell>
                       <TableCell>{customer.name}</TableCell>
@@ -152,7 +154,7 @@ export default function CustomersPage() {
                         <div>{customer.email}</div>
                         <div className="text-muted-foreground">{customer.phone}</div>
                       </TableCell>
-                      <TableCell>{customer.vehicles.length}</TableCell>
+                      {/* <TableCell>{customer.vehicles.length}</TableCell> */}
                       <TableCell>{new Date(customer.lastVisit).toLocaleDateString()}</TableCell>
                       <TableCell>${customer.totalSpent.toFixed(2)}</TableCell>
                       <TableCell className="text-right">
