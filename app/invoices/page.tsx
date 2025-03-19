@@ -157,7 +157,7 @@ export default function InvoicesPage() {
                 {invoicesData && invoicesData.items.length > 0 ? (
                   invoicesData.items.map((invoice) => (
                     <TableRow key={invoice.id}>
-                      <TableCell className="font-medium">{invoice.id}</TableCell>
+                      <TableCell className="font-medium"><Link href={`/invoices/${invoice.id}`}>{invoice.id}</Link></TableCell>
                       <TableCell>{invoice.customer}</TableCell>
                       <TableCell>{invoice.vehicle}</TableCell>
                       <TableCell>{new Date(invoice.date).toLocaleDateString()}</TableCell>

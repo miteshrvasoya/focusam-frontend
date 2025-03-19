@@ -10,28 +10,35 @@ import { LoadingSpinner } from "@/components/loading-spinner"
 import { ErrorMessage } from "@/components/error-message"
 import { invoicesApi } from "@/lib/api"
 import type { Invoice } from "@/types/api"
+import { useParams } from "next/navigation"
 
-export default function InvoiceDetailPage({ params }: { params: { id: string } }) {
-  const [invoice, setInvoice] = useState<Invoice | null>(null)
+export default function InvoiceDetailPage() {
+  const [invoice, setInvoice] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchInvoice = async () => {
-    setIsLoading(true)
-    setError(null)
-    try {
-      const response = await invoicesApi.getById(params.id)
-      setInvoice(response.data)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load invoice details")
-    } finally {
-      setIsLoading(false)
-    }
-  }
+  const params = useParams();  // Correctly use useParams()
+  const invoiceId = params?.id as string; // Ensure it's properly accessed
 
   useEffect(() => {
-    fetchInvoice()
-  }, [params.id])
+    if (invoiceId) {
+      fetchInvoice();
+    }
+  }, [invoiceId]); // Use invoiceId instead of params.id
+
+  const fetchInvoice = async () => {
+    try {
+      const response = await invoicesApi.getById(params.id as string);
+      let data = response;
+      console.log("Data: ", data.data);
+      if (data.success) {
+        setInvoice(data.data);
+        setIsLoading(false);
+      }
+    } catch (error) {
+      console.error("Error fetching invoice:", error);
+    }
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -77,9 +84,9 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
             </Link>
           </Button>
           <h1 className="text-3xl font-bold">Invoice {invoice.id}</h1>
-          {getStatusBadge(invoice.status)}
+          {getStatusBadge(invoice.invoice.status)}
         </div>
-        <p className="text-muted-foreground">Created on {new Date(invoice.createdAt).toLocaleDateString()}</p>
+        <p className="text-muted-foreground">Created on {new Date(invoice.invoice.createdAt).toLocaleDateString("en-US", {year: "numeric",month: "long",day: "numeric"})}</p>
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">
@@ -92,19 +99,19 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
               <div className="grid grid-cols-2 gap-4 mb-6">
                 <div>
                   <h3 className="text-sm font-medium text-muted-foreground">Invoice Number</h3>
-                  <p className="text-lg font-medium">{invoice.id}</p>
+                  <p className="text-lg font-medium">{invoice.invoice.id}</p>
                 </div>
                 <div>
                   <h3 className="text-sm font-medium text-muted-foreground">Payment Method</h3>
-                  <p className="text-lg font-medium">{invoice.paymentMethod}</p>
+                  <p className="text-lg font-medium">{invoice.invoice.paymentMethod}</p>
                 </div>
                 <div>
                   <h3 className="text-sm font-medium text-muted-foreground">Created Date</h3>
-                  <p className="text-lg font-medium">{new Date(invoice.date).toLocaleDateString()}</p>
+                  <p className="text-lg font-medium">{new Date(invoice.invoice.date).toLocaleDateString()}</p>
                 </div>
                 <div>
                   <h3 className="text-sm font-medium text-muted-foreground">Due Date</h3>
-                  <p className="text-lg font-medium">{new Date(invoice.dueDate).toLocaleDateString()}</p>
+                  <p className="text-lg font-medium">{new Date(invoice.invoice.dueDate).toLocaleDateString()}</p>
                 </div>
               </div>
 
@@ -119,12 +126,12 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
                     </tr>
                   </thead>
                   <tbody>
-                    {invoice.services.map((service) => (
-                      <tr key={service.id} className="border-b">
-                        <td className="px-4 py-3">{service.description}</td>
+                    {invoice.invoice.services.map((service: any, index: number) => (
+                      <tr key={service.id || index} className="border-b">
+                        <td className="px-4 py-3 text-left">{service.description}</td>
                         <td className="px-4 py-3 text-center">{service.quantity}</td>
-                        <td className="px-4 py-3 text-right">${service.unitPrice.toFixed(2)}</td>
-                        <td className="px-4 py-3 text-right">${service.total.toFixed(2)}</td>
+                        <td className="px-4 py-3 text-right">{service.unitPrice}</td>
+                        <td className="px-4 py-3 text-right">{service.total}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -133,19 +140,19 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
                       <td colSpan={3} className="px-4 py-3 text-right font-medium">
                         Subtotal
                       </td>
-                      <td className="px-4 py-3 text-right">${invoice.subtotal.toFixed(2)}</td>
+                      <td className="px-4 py-3 text-right">{invoice.invoice.amount.toFixed(2)}</td>
                     </tr>
                     <tr className="border-b">
                       <td colSpan={3} className="px-4 py-3 text-right font-medium">
                         Tax
                       </td>
-                      <td className="px-4 py-3 text-right">${invoice.tax.toFixed(2)}</td>
+                      <td className="px-4 py-3 text-right">${invoice.invoice.tax?.toFixed(2) || 0}</td>
                     </tr>
                     <tr>
                       <td colSpan={3} className="px-4 py-3 text-right font-bold">
                         Total
                       </td>
-                      <td className="px-4 py-3 text-right font-bold">${invoice.amount.toFixed(2)}</td>
+                      <td className="px-4 py-3 text-right font-bold">${invoice.invoice.amount.toFixed(2)}</td>
                     </tr>
                   </tfoot>
                 </table>
@@ -187,12 +194,12 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
             <CardContent>
               <div className="space-y-4">
                 <div>
-                  <h3 className="text-sm font-medium text-muted-foreground">Customer ID</h3>
-                  <p className="text-lg font-medium">{invoice.customerId}</p>
+                  {/* <h3 className="text-sm font-medium text-muted-foreground">Customer ID</h3> */}
+                  {/* <p className="text-lg font-medium">{invoice.customerId}</p> */}
                 </div>
                 <div>
                   <h3 className="text-sm font-medium text-muted-foreground">Name</h3>
-                  <p className="text-lg font-medium">{invoice.customer}</p>
+                  <p className="text-lg font-medium">{invoice.customer.name}</p>
                 </div>
                 <Button variant="outline" className="w-full mt-4" asChild>
                   <Link href={`/customers/${invoice.customerId}`}>View Customer Details</Link>
@@ -208,12 +215,12 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
             <CardContent>
               <div className="space-y-4">
                 <div>
-                  <h3 className="text-sm font-medium text-muted-foreground">Vehicle ID</h3>
-                  <p className="text-lg font-medium">{invoice.vehicleId}</p>
+                  {/* <h3 className="text-sm font-medium text-muted-foreground">Vehicle ID</h3> */}
+                  {/* <p className="text-lg font-medium">{invoice.vehicleId}</p> */}
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium text-muted-foreground">Make & Model</h3>
-                  <p className="text-lg font-medium">{invoice.vehicle}</p>
+                  <h3 className="text-sm font-medium text-muted-foreground">Make | Model | Year</h3>
+                  <p className="text-lg font-medium">{invoice.vehicle.make} | {invoice.vehicle.model} | {invoice.vehicle.year}</p>
                 </div>
                 <Button variant="outline" className="w-full mt-4" asChild>
                   <Link href={`/vehicles/${invoice.vehicleId}`}>View Vehicle Details</Link>
