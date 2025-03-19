@@ -101,7 +101,7 @@ export const customersApi = {
     return fetchApi<PaginatedResponse<Customer>>(`/customer`)
   },
 
-  getById: (id: string) => fetchApi<Customer>(`/customers/${id}`),
+  getById: (id: string) => fetchApi<Customer>(`/customer/${id}`),
 
   searchByMobileNo: (mo_no: string) => {
     console.log("Searching By Mobile Number")

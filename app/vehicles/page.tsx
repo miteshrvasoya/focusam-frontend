@@ -167,7 +167,7 @@ export default function VehiclesPage() {
                       </TableCell>
                       <TableCell>{vehicle.registration}</TableCell>
                       <TableCell>{vehicle.owner.name}</TableCell>
-                      <TableCell>{new Date(vehicle.lastService).toLocaleDateString()}</TableCell>
+                      <TableCell>{new Date(vehicle.lastService).toLocaleDateString('en-UK')}</TableCell>
                       <TableCell>{getStatusBadge(vehicle.status)}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">

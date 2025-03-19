@@ -11,17 +11,21 @@ import { LoadingSpinner } from "@/components/loading-spinner"
 import { ErrorMessage } from "@/components/error-message"
 import { customersApi } from "@/lib/api"
 import type { Customer } from "@/types/api"
+import { useParams } from "next/navigation"
 
-export default function CustomerDetailPage({ params }: { params: { id: string } }) {
-  const [customer, setCustomer] = useState<Customer | null>(null)
+export default function CustomerDetailPage() {
+  const [customer, setCustomer] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  let params = useParams();
+  let customerId = params.id as string;
 
   const fetchCustomer = async () => {
     setIsLoading(true)
     setError(null)
     try {
-      const response = await customersApi.getById(params.id)
+      const response = await customersApi.getById(customerId)
       setCustomer(response.data)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load customer details")
@@ -32,7 +36,7 @@ export default function CustomerDetailPage({ params }: { params: { id: string } 
 
   useEffect(() => {
     fetchCustomer()
-  }, [params.id])
+  }, [customerId])
 
   if (isLoading) {
     return (
@@ -64,9 +68,9 @@ export default function CustomerDetailPage({ params }: { params: { id: string } 
               <span className="sr-only">Back</span>
             </Link>
           </Button>
-          <h1 className="text-3xl font-bold">{customer.name}</h1>
+          <h1 className="text-3xl font-bold">{customer.customer.name}</h1>
         </div>
-        <p className="text-muted-foreground">Customer ID: {customer.id}</p>
+        <p className="text-muted-foreground">Customer ID: {customer.customer.customer_id}</p>
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">
@@ -79,25 +83,25 @@ export default function CustomerDetailPage({ params }: { params: { id: string } 
               <div className="space-y-4">
                 <div>
                   <h3 className="text-sm font-medium text-muted-foreground">Email</h3>
-                  <p className="text-lg font-medium">{customer.email}</p>
+                  <p className="text-lg font-medium">{customer.customer.email}</p>
                 </div>
                 <div>
                   <h3 className="text-sm font-medium text-muted-foreground">Phone</h3>
-                  <p className="text-lg font-medium">{customer.phone}</p>
+                  <p className="text-lg font-medium">{customer.customer.phone}</p>
                 </div>
                 <div>
                   <h3 className="text-sm font-medium text-muted-foreground">Address</h3>
-                  <p className="text-lg font-medium">{customer.address}</p>
+                  <p className="text-lg font-medium">{customer.customer.address}</p>
                 </div>
                 <div>
                   <h3 className="text-sm font-medium text-muted-foreground">Customer Since</h3>
-                  <p className="text-lg font-medium">{new Date(customer.createdAt).toLocaleDateString()}</p>
+                  <p className="text-lg font-medium">{new Date(customer.customer.createdAt).toLocaleDateString('en-UK')}</p>
                 </div>
               </div>
             </CardContent>
             <CardFooter>
               <Button variant="outline" className="w-full" asChild>
-                <Link href={`/customers/${customer.id}/edit`}>
+                <Link href={`/customers/${customer.customer.id}/edit`}>
                   <Edit className="h-4 w-4 mr-2" />
                   Edit Customer
                 </Link>
@@ -129,10 +133,10 @@ export default function CustomerDetailPage({ params }: { params: { id: string } 
               </Button>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
+              <div key={customer.customer._id} className="space-y-4">
                 {customer.vehicles.length > 0 ? (
-                  customer.vehicles.map((vehicle) => (
-                    <div key={vehicle.id} className="border rounded-md p-4">
+                  customer.vehicles.map((vehicle: any, index: number) => (
+                    <div key={vehicle.id || index} className="border rounded-md p-4">
                       <div className="flex justify-between items-start mb-2">
                         <h3 className="font-semibold">
                           {vehicle.make} {vehicle.model} ({vehicle.year})
@@ -148,7 +152,7 @@ export default function CustomerDetailPage({ params }: { params: { id: string } 
                         </div>
                         <div>
                           <span className="text-muted-foreground">Last Service: </span>
-                          {new Date(vehicle.lastService).toLocaleDateString()}
+                          {new Date(vehicle.lastServiceDate).toLocaleDateString('en-UK')}
                         </div>
                       </div>
                     </div>
@@ -185,10 +189,10 @@ export default function CustomerDetailPage({ params }: { params: { id: string } 
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {customer.invoices.map((invoice) => (
-                        <TableRow key={invoice.id}>
+                      {customer.invoices.map((invoice: any, index: number) => (
+                        <TableRow key={invoice.id || index}>
                           <TableCell className="font-medium">{invoice.id}</TableCell>
-                          <TableCell>{new Date(invoice.date).toLocaleDateString()}</TableCell>
+                          <TableCell>{new Date(invoice.date).toLocaleDateString('en-UK')}</TableCell>
                           <TableCell>{invoice.vehicle}</TableCell>
                           <TableCell>${invoice.amount.toFixed(2)}</TableCell>
                           <TableCell>

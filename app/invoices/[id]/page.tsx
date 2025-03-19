@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -11,11 +11,15 @@ import { ErrorMessage } from "@/components/error-message"
 import { invoicesApi } from "@/lib/api"
 import type { Invoice } from "@/types/api"
 import { useParams } from "next/navigation"
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
+
 
 export default function InvoiceDetailPage() {
   const [invoice, setInvoice] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const invoiceRef = useRef<HTMLDivElement>(null);
 
   const params = useParams();  // Correctly use useParams()
   const invoiceId = params?.id as string; // Ensure it's properly accessed
@@ -53,6 +57,31 @@ export default function InvoiceDetailPage() {
     }
   }
 
+  const handleDownloadPDF = async () => {
+    if (!invoiceRef.current) return;
+
+    try {
+      // Capture invoice as an image with correct background
+      const canvas = await html2canvas(invoiceRef.current, {
+        scale: 2, // High resolution
+        backgroundColor: "#ffffff", // Fix black background issue
+        useCORS: true, // Ensure images are captured
+      });
+
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "mm", "a4");
+
+      // Convert canvas dimensions to fit A4
+      const imgWidth = 210; // A4 width in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
+      pdf.save("invoice.pdf"); // Download the PDF
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="p-6">
@@ -83,10 +112,10 @@ export default function InvoiceDetailPage() {
               <span className="sr-only">Back</span>
             </Link>
           </Button>
-          <h1 className="text-3xl font-bold">Invoice {invoice.id}</h1>
+          <h1 className="text-3xl font-bold" ref={invoiceRef}>Invoice {invoice.id}</h1>
           {getStatusBadge(invoice.invoice.status)}
         </div>
-        <p className="text-muted-foreground">Created on {new Date(invoice.invoice.createdAt).toLocaleDateString("en-US", {year: "numeric",month: "long",day: "numeric"})}</p>
+        <p className="text-muted-foreground">Created on {new Date(invoice.invoice.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}</p>
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">
@@ -107,11 +136,11 @@ export default function InvoiceDetailPage() {
                 </div>
                 <div>
                   <h3 className="text-sm font-medium text-muted-foreground">Created Date</h3>
-                  <p className="text-lg font-medium">{new Date(invoice.invoice.date).toLocaleDateString()}</p>
+                  <p className="text-lg font-medium">{new Date(invoice.invoice.date).toLocaleDateString('en-UK')}</p>
                 </div>
                 <div>
                   <h3 className="text-sm font-medium text-muted-foreground">Due Date</h3>
-                  <p className="text-lg font-medium">{new Date(invoice.invoice.dueDate).toLocaleDateString()}</p>
+                  <p className="text-lg font-medium">{new Date(invoice.invoice.dueDate).toLocaleDateString('en-UK')}</p>
                 </div>
               </div>
 
@@ -177,7 +206,7 @@ export default function InvoiceDetailPage() {
                   <Printer className="h-4 w-4 mr-2" />
                   Print
                 </Button>
-                <Button>
+                <Button onClick={handleDownloadPDF}>
                   <Download className="h-4 w-4 mr-2" />
                   Download PDF
                 </Button>

@@ -136,7 +136,7 @@ export default function VehicleDetailPage({ params }: { params: { id: string } }
                 </div>
                 <div>
                   <h3 className="text-sm font-medium text-muted-foreground">Last Service</h3>
-                  <p className="text-lg font-medium">{new Date(vehicle.lastService).toLocaleDateString()}</p>
+                  <p className="text-lg font-medium">{new Date(vehicle.lastService).toLocaleDateString('en-UK')}</p>
                 </div>
               </div>
             </CardContent>
@@ -214,7 +214,7 @@ export default function VehicleDetailPage({ params }: { params: { id: string } }
                   <TableBody>
                     {vehicle.serviceHistory.map((service) => (
                       <TableRow key={service.id}>
-                        <TableCell>{new Date(service.date).toLocaleDateString()}</TableCell>
+                        <TableCell>{new Date(service.date).toLocaleDateString('en-UK')}</TableCell>
                         <TableCell className="font-medium">{service.type}</TableCell>
                         <TableCell>{service.description}</TableCell>
                         <TableCell>{service.odometer}</TableCell>
@@ -247,7 +247,7 @@ export default function VehicleDetailPage({ params }: { params: { id: string } }
                       <h3 className="font-semibold">{service.type}</h3>
                       <div className="flex items-center">
                         <Calendar className="h-4 w-4 mr-1 text-muted-foreground" />
-                        <span className="text-sm">Due: {new Date(service.dueDate).toLocaleDateString()}</span>
+                        <span className="text-sm">Due: {new Date(service.dueDate).toLocaleDateString('en-UK')}</span>
                       </div>
                     </div>
                     <div className="text-sm">

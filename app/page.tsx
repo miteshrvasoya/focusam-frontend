@@ -136,7 +136,7 @@ export default function Dashboard() {
                   </div>
                   <div className="text-right">
                     <p className="font-medium">${invoice.amount.toFixed(2)}</p>
-                    <p className="text-sm text-muted-foreground">{new Date(invoice.date).toLocaleDateString()}</p>
+                    <p className="text-sm text-muted-foreground">{new Date(invoice.date).toLocaleDateString('en-UK')}</p>
                   </div>
                 </div>
               ))}

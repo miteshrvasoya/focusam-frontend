@@ -160,7 +160,7 @@ export default function InvoicesPage() {
                       <TableCell className="font-medium"><Link href={`/invoices/${invoice.id}`}>{invoice.id}</Link></TableCell>
                       <TableCell>{invoice.customer}</TableCell>
                       <TableCell>{invoice.vehicle}</TableCell>
-                      <TableCell>{new Date(invoice.date).toLocaleDateString()}</TableCell>
+                      <TableCell>{new Date(invoice.date).toLocaleDateString('en-UK')}</TableCell>
                       <TableCell>${invoice.amount.toFixed(2)}</TableCell>
                       <TableCell>{getStatusBadge(invoice.status)}</TableCell>
                       <TableCell className="text-right">
