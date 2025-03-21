@@ -17,20 +17,16 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
+
   return (
     <html lang="en" className="dark">
       <body className={inter.className}>
-        <SidebarProvider>
-          <div className="flex min-h-screen">
-            <Sidebar />
-            <main className="flex-1 bg-background">{children}</main>
-          </div>
-        </SidebarProvider>
+      <LayoutWrapper>{children}</LayoutWrapper>
       </body>
     </html>
   )
 }
 
-
-
 import './globals.css'
+import LayoutWrapper from "./layoutWrapper"
+

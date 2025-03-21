@@ -155,7 +155,7 @@ export default function InvoicesPage() {
               </TableHeader>
               <TableBody>
                 {invoicesData && invoicesData.items.length > 0 ? (
-                  invoicesData.items.map((invoice) => (
+                  invoicesData.items.map((invoice: any) => (
                     <TableRow key={invoice.id}>
                       <TableCell className="font-medium"><Link href={`/invoices/${invoice.id}`}>{invoice.id}</Link></TableCell>
                       <TableCell>{invoice.customer}</TableCell>

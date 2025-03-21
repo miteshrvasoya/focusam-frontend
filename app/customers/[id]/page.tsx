@@ -194,7 +194,7 @@ export default function CustomerDetailPage() {
                           <TableCell className="font-medium">{invoice.id}</TableCell>
                           <TableCell>{new Date(invoice.date).toLocaleDateString('en-UK')}</TableCell>
                           <TableCell>{invoice.vehicle}</TableCell>
-                          <TableCell>${invoice.amount.toFixed(2)}</TableCell>
+                          <TableCell>${invoice.invoice.amount.toFixed(2)}</TableCell>
                           <TableCell>
                             <Badge
                               className={

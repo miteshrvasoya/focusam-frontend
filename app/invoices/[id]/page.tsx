@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Download, Printer, Edit } from "lucide-react"
+import { ArrowLeft, Download, Printer, Edit, Share2 } from "lucide-react"
 import Link from "next/link"
 import { LoadingSpinner } from "@/components/loading-spinner"
 import { ErrorMessage } from "@/components/error-message"
@@ -13,6 +13,7 @@ import type { Invoice } from "@/types/api"
 import { useParams } from "next/navigation"
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
+import { toast } from "@/components/ui/use-toast"
 
 
 export default function InvoiceDetailPage() {
@@ -20,6 +21,7 @@ export default function InvoiceDetailPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const invoiceRef = useRef<HTMLDivElement>(null);
+  const [isSharing, setIsSharing] = useState(false)
 
   const params = useParams();  // Correctly use useParams()
   const invoiceId = params?.id as string; // Ensure it's properly accessed
@@ -57,30 +59,44 @@ export default function InvoiceDetailPage() {
     }
   }
 
-  const handleDownloadPDF = async () => {
-    if (!invoiceRef.current) return;
 
+  const handleShareInvoice = async () => {
+
+    console.log("Invoice :", invoice);
+
+    if (!invoice) return
+
+    setIsSharing(true)
     try {
-      // Capture invoice as an image with correct background
-      const canvas = await html2canvas(invoiceRef.current, {
-        scale: 2, // High resolution
-        backgroundColor: "#ffffff", // Fix black background issue
-        useCORS: true, // Ensure images are captured
-      });
+      // Generate a shareable link
+      const shareableLink = `${window.location.origin}/public/invoice/${invoice.invoice._id}`
 
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF("p", "mm", "a4");
+      // Create WhatsApp share link with invoice details
+      const message = `Hello! Here's your invoice #${invoice.id} from AutoFix Workshop for ${invoice.vehicle} servicing. Total amount: $${invoice.invoice.amount.toFixed(2)}. View your invoice here: ${shareableLink}`
+      const whatsappLink = `https://wa.me/?text=${encodeURIComponent(message)}`
 
-      // Convert canvas dimensions to fit A4
-      const imgWidth = 210; // A4 width in mm
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      console.log("WhatsApp Link:", whatsappLink);
 
-      pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
-      pdf.save("invoice.pdf"); // Download the PDF
-    } catch (error) {
-      console.error("Error generating PDF:", error);
+      // Open WhatsApp in a new tab
+      window.open(whatsappLink, "_blank")
+
+      // Copy link to clipboard
+      await navigator.clipboard.writeText(shareableLink)
+      toast({
+        title: "Link copied to clipboard",
+        description: "You can now paste and share the invoice link",
+      })
+    } catch (err) {
+      console.log("err : ", err);
+      toast({
+        title: "Error sharing invoice",
+        description: "Failed to share the invoice. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsSharing(false)
     }
-  };
+  }
 
   if (isLoading) {
     return (
@@ -99,7 +115,7 @@ export default function InvoiceDetailPage() {
   }
 
   if (!invoice) {
-    return null
+    return <p className="text-center text-gray-500">No invoice found.</p>;
   }
 
   return (
@@ -202,14 +218,10 @@ export default function InvoiceDetailPage() {
                 </Link>
               </Button>
               <div className="flex gap-2">
-                <Button variant="outline">
-                  <Printer className="h-4 w-4 mr-2" />
-                  Print
-                </Button>
-                <Button onClick={handleDownloadPDF}>
-                  <Download className="h-4 w-4 mr-2" />
-                  Download PDF
-                </Button>
+              <Button onClick={handleShareInvoice} disabled={isSharing}>
+                <Share2 className={`h-4 w-4 mr-2 ${isSharing ? "animate-spin" : ""}`} />
+                {isSharing ? "Sharing..." : "Share Invoice"}
+              </Button>
               </div>
             </CardFooter>
           </Card>
