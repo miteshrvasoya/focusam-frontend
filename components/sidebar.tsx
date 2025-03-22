@@ -11,6 +11,11 @@ export function Sidebar() {
   const pathname = usePathname()
   const { isOpen, toggle } = useSidebar()
 
+  // Don't render sidebar for public pages
+  if (pathname?.startsWith("/public")) {
+    return null
+  }
+
   const routes = [
     {
       label: "Dashboard",
@@ -71,7 +76,7 @@ export function Sidebar() {
               isOpen ? "opacity-100" : "opacity-0 md:opacity-0",
             )}
           >
-            Focus Automobile
+            AutoFix
           </h1>
           <Button variant="ghost" size="icon" onClick={toggle} className="md:hidden">
             <X className="h-5 w-5" />

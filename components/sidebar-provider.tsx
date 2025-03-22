@@ -1,8 +1,8 @@
 "use client"
 
 import type React from "react"
-
-import { createContext, useContext, useState } from "react"
+import { createContext, useContext, useState, useEffect } from "react"
+import { usePathname } from "next/navigation"
 
 type SidebarContextType = {
   isOpen: boolean
@@ -13,6 +13,14 @@ const SidebarContext = createContext<SidebarContextType | undefined>(undefined)
 
 export function SidebarProvider({ children }: { children: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(true)
+  const pathname = usePathname()
+
+  // Close sidebar by default on public pages
+  useEffect(() => {
+    if (pathname?.startsWith("/public")) {
+      setIsOpen(false)
+    }
+  }, [pathname])
 
   const toggle = () => {
     setIsOpen(!isOpen)
