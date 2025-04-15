@@ -10,22 +10,27 @@ import { ErrorMessage } from "@/components/error-message"
 import { invoicesApi } from "@/lib/api"
 import type { Invoice } from "@/types/api"
 import Image from "next/image"
-import { useParams } from "next/navigation"
+import { ErrorBoundary } from "@/components/error-boundary"
 
-export default function PublicInvoiceView() {
-  const [invoice, setInvoice] = useState<any>(null)
+export default function PublicInvoiceView({ params }: { params: { id: string } }) {
+  const [invoice, setInvoice] = useState<Invoice | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [mounted, setMounted] = useState(false)
   const printRef = useRef<HTMLDivElement>(null)
 
-  const params = useParams();  // Correctly use useParams()
-    const invoiceId = params?.id as string; // Ensure it's properly accessed
+  // Only run on client
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const fetchInvoice = async () => {
+    if (!mounted) return
+
     setIsLoading(true)
     setError(null)
     try {
-      const response = await invoicesApi.getById(invoiceId)
+      const response = await invoicesApi.getById(params.id)
       setInvoice(response.data)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load invoice details")
@@ -35,11 +40,15 @@ export default function PublicInvoiceView() {
   }
 
   useEffect(() => {
-    fetchInvoice()
-  }, [params.id])
+    if (mounted) {
+      fetchInvoice()
+    }
+  }, [params.id, mounted])
 
   const handlePrint = () => {
-    window.print()
+    if (mounted && typeof window !== "undefined") {
+      window.print()
+    }
   }
 
   const getStatusBadge = (status: string) => {
@@ -52,6 +61,11 @@ export default function PublicInvoiceView() {
 
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.default
     return <Badge className={config.className}>{config.label}</Badge>
+  }
+
+  // Don't render anything on server
+  if (!mounted) {
+    return null
   }
 
   if (isLoading) {
@@ -79,33 +93,9 @@ export default function PublicInvoiceView() {
   }
 
   return (
-    <>
-      {/* Print-only styles */}
-      <style jsx global>{`
-        @media print {
-          @page { margin: 0.5cm; }
-          body { 
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
-          }
-          .no-print { display: none !important; }
-          .print-container { 
-            padding: 0 !important; 
-            max-width: 100% !important;
-          }
-          .print-card {
-            border: none !important;
-            box-shadow: none !important;
-            padding: 0 !important;
-          }
-          .print-break-inside-avoid {
-            break-inside: avoid;
-          }
-        }
-      `}</style>
-
-      <div className="p-4 sm:p-6 max-w-4xl mx-auto print-container">
-        <div className="flex justify-end mb-4 no-print">
+    <ErrorBoundary>
+      <div className="p-4 sm:p-6 max-w-4xl mx-auto">
+        <div className="flex justify-end mb-4">
           <Button onClick={handlePrint} className="bg-blue-600 hover:bg-blue-700">
             <Printer className="h-4 w-4 mr-2" />
             Print Invoice
@@ -114,7 +104,7 @@ export default function PublicInvoiceView() {
 
         <div ref={printRef} className="space-y-6">
           {/* Header with logo and invoice info */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 print-break-inside-avoid">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
             <div className="flex items-center mb-4 sm:mb-0">
               <div className="mr-3">
                 <Image src="/logo.svg" alt="AutoFix Workshop" width={50} height={50} className="h-12 w-12" />
@@ -134,7 +124,7 @@ export default function PublicInvoiceView() {
           </div>
 
           {/* Dates */}
-          <div className="flex flex-col sm:flex-row justify-between text-sm print-break-inside-avoid gap-2">
+          <div className="flex flex-col sm:flex-row justify-between text-sm gap-2">
             <div className="bg-gray-50 p-3 rounded-md flex-1">
               <p>
                 <span className="font-medium">Invoice Date:</span> {new Date(invoice.date).toLocaleDateString()}
@@ -153,30 +143,30 @@ export default function PublicInvoiceView() {
           </div>
 
           {/* Customer and Vehicle Info */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 print-break-inside-avoid">
-            <Card className="print-card shadow-sm">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card className="shadow-sm">
               <CardContent className="p-4">
                 <h3 className="font-bold text-lg mb-2 text-blue-700">Customer Information</h3>
                 <div className="space-y-1">
                   <p>
-                    <span className="font-medium">Name:</span> {invoice.customer.name}
+                    <span className="font-medium">Name:</span> {invoice.customer}
                   </p>
                   <p>
-                    <span className="font-medium">Customer ID:</span> {invoice.customer.customerId}
+                    <span className="font-medium">Customer ID:</span> {invoice.customerId}
                   </p>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="print-card shadow-sm">
+            <Card className="shadow-sm">
               <CardContent className="p-4">
                 <h3 className="font-bold text-lg mb-2 text-blue-700">Vehicle Information</h3>
                 <div className="space-y-1">
                   <p>
-                    <span className="font-medium">Vehicle:</span> {invoice.vehicle.make}
+                    <span className="font-medium">Vehicle:</span> {invoice?.vehicle || ""}
                   </p>
                   <p>
-                    <span className="font-medium">Vehicle ID:</span> {invoice.vehicle.vehicleId}
+                    <span className="font-medium">Vehicle ID:</span> {invoice?.vehicle?.vehicleId || ""}
                   </p>
                 </div>
               </CardContent>
@@ -184,7 +174,7 @@ export default function PublicInvoiceView() {
           </div>
 
           {/* Services Table */}
-          <Card className="print-card shadow-sm print-break-inside-avoid">
+          <Card className="shadow-sm">
             <CardContent className="p-4">
               <h3 className="font-bold text-lg mb-3 text-blue-700">Services & Charges</h3>
               <div className="overflow-x-auto">
@@ -198,7 +188,7 @@ export default function PublicInvoiceView() {
                     </tr>
                   </thead>
                   <tbody>
-                    {invoice.invoice.services.map((service: any, index: number) => (
+                    {invoice.services.map((service, index) => (
                       <tr key={service.id || index} className="border-b hover:bg-gray-50">
                         <td className="p-2">{service.description}</td>
                         <td className="p-2 text-center">{service.quantity}</td>
@@ -212,19 +202,19 @@ export default function PublicInvoiceView() {
                       <td colSpan={3} className="p-2 text-right font-medium">
                         Subtotal
                       </td>
-                      <td className="p-2 text-right">${invoice.invoice.amount.toFixed(2)}</td>
+                      <td className="p-2 text-right">${invoice.subtotal.toFixed(2)}</td>
                     </tr>
                     <tr className="border-b bg-gray-50">
                       <td colSpan={3} className="p-2 text-right font-medium">
                         Tax
                       </td>
-                      <td className="p-2 text-right">${invoice.invoice.tax?.toFixed(2) || 0}</td>
+                      <td className="p-2 text-right">${invoice.tax.toFixed(2)}</td>
                     </tr>
                     <tr className="bg-blue-50">
                       <td colSpan={3} className="p-2 text-right font-bold">
                         Total
                       </td>
-                      <td className="p-2 text-right font-bold">${invoice.invoice.amount.toFixed(2)}</td>
+                      <td className="p-2 text-right font-bold">${invoice.amount.toFixed(2)}</td>
                     </tr>
                   </tfoot>
                 </table>
@@ -234,7 +224,7 @@ export default function PublicInvoiceView() {
 
           {/* Notes */}
           {invoice.notes && (
-            <Card className="print-card shadow-sm print-break-inside-avoid">
+            <Card className="shadow-sm">
               <CardContent className="p-4">
                 <h3 className="font-bold text-lg mb-2 text-blue-700">Notes</h3>
                 <p className="text-gray-700 bg-gray-50 p-3 rounded-md">{invoice.notes}</p>
@@ -243,14 +233,14 @@ export default function PublicInvoiceView() {
           )}
 
           {/* Footer */}
-          <div className="text-center text-sm text-gray-500 mt-8 print-break-inside-avoid border-t pt-4">
+          <div className="text-center text-sm text-gray-500 mt-8 border-t pt-4">
             <p>Thank you for choosing AutoFix Workshop for your vehicle service needs.</p>
             <p>For any questions regarding this invoice, please contact us at support@autofixworkshop.com</p>
             <p className="mt-2">© {new Date().getFullYear()} AutoFix Workshop. All rights reserved.</p>
           </div>
         </div>
       </div>
-    </>
+    </ErrorBoundary>
   )
 }
 

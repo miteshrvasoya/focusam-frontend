@@ -11,6 +11,7 @@ export default function PublicLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  return <div className="bg-white text-black min-h-screen">{children}</div>
+  // No HTML or body tags, just a simple wrapper
+  return <>{children}</>
 }
 

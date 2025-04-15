@@ -2,17 +2,19 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { BarChart3, FileText, FilePlus, Settings, Users, Car, Menu, X } from "lucide-react"
+import { BarChart3, FileText, FilePlus, Settings, Users, Car, Menu, X, LogOut } from "lucide-react"
 import { useSidebar } from "./sidebar-provider"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { useAuth } from "@/context/auth-context"
 
 export function Sidebar() {
   const pathname = usePathname()
   const { isOpen, toggle } = useSidebar()
+  const { logout, user } = useAuth()
 
   // Don't render sidebar for public pages
-  if (pathname?.startsWith("/public")) {
+  if (pathname?.startsWith("/public") || pathname === "/login") {
     return null
   }
 
@@ -82,6 +84,20 @@ export function Sidebar() {
             <X className="h-5 w-5" />
           </Button>
         </div>
+
+        {/* User info section */}
+        {user && (
+          <div
+            className={cn(
+              "px-4 py-3 border-b border-border transition-opacity duration-200",
+              isOpen ? "opacity-100" : "opacity-0 md:opacity-0",
+            )}
+          >
+            <p className="font-medium text-sm">{user.name}</p>
+            <p className="text-xs text-muted-foreground">{user.role}</p>
+          </div>
+        )}
+
         <div className="flex-1 overflow-auto py-4">
           <nav className="space-y-1 px-2">
             {routes.map((route) => (
@@ -107,6 +123,28 @@ export function Sidebar() {
               </Link>
             ))}
           </nav>
+        </div>
+
+        {/* Logout button */}
+        <div className="p-2 border-t border-border">
+          <Button
+            variant="ghost"
+            className={cn(
+              "w-full justify-start text-muted-foreground hover:text-foreground",
+              !isOpen && "justify-center",
+            )}
+            onClick={logout}
+          >
+            <LogOut className={cn("h-5 w-5 mr-3", isOpen ? "" : "mx-auto")} />
+            <span
+              className={cn(
+                "transition-opacity duration-200",
+                isOpen ? "opacity-100" : "opacity-0 hidden md:block md:opacity-0",
+              )}
+            >
+              Logout
+            </span>
+          </Button>
         </div>
       </div>
     </>

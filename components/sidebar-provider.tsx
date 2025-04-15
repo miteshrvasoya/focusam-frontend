@@ -13,14 +13,22 @@ const SidebarContext = createContext<SidebarContextType | undefined>(undefined)
 
 export function SidebarProvider({ children }: { children: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(true)
+  const [isBrowser, setIsBrowser] = useState(false)
   const pathname = usePathname()
+
+  // Safe check for browser environment
+  useEffect(() => {
+    setIsBrowser(true)
+  }, [])
 
   // Close sidebar by default on public pages
   useEffect(() => {
-    if (pathname?.startsWith("/public")) {
+    if (!isBrowser) return
+
+    if (pathname?.startsWith("/public") || pathname === "/login") {
       setIsOpen(false)
     }
-  }, [pathname])
+  }, [pathname, isBrowser])
 
   const toggle = () => {
     setIsOpen(!isOpen)

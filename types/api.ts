@@ -25,6 +25,42 @@ export interface DashboardSummary {
   servicesGrowth: number
   recentInvoices: Invoice[]
   pendingServices: PendingService[]
+
+  // New fields
+  totalCustomers: number
+  totalVehicles: number
+  totalDueAmount: number
+  customerGrowth: number
+  vehicleGrowth: number
+  dueInvoices: Invoice[]
+  frequentCustomers: FrequentCustomer[]
+  upcomingServices: UpcomingService[]
+  topVehicles: TopVehicle[]
+  latestNotes: string[]
+  serviceStats: ServiceStats
+}
+
+export interface FrequentCustomer {
+  id: string
+  name: string
+  email: string
+  phone: string
+  visits: number
+  lastVisit: string
+  totalSpent: number
+}
+
+export interface TopVehicle {
+  model: string
+  count: number
+  percentage: number
+}
+
+export interface ServiceStats {
+  total: number
+  completed: number
+  onTime: number
+  satisfaction: number
 }
 
 export interface PendingService {
@@ -39,7 +75,7 @@ export interface Invoice {
   id: string
   customer: string
   customerId: string
-  vehicle: string
+  vehicle: any
   vehicleId: string
   date: string
   dueDate: string
@@ -115,6 +151,8 @@ export interface CreateCustomerDto {
   name: string
   email: string
   phone: string
+  address?: string
+  notes?: string
 }
 
 export interface UpdateCustomerDto extends Partial<CreateCustomerDto> {
@@ -145,6 +183,7 @@ export interface Vehicle {
   notes?: string
   createdAt: string
   updatedAt: string
+  fuelType?: string // Add this field
 }
 
 export interface ServiceRecord {
@@ -159,10 +198,14 @@ export interface ServiceRecord {
 
 export interface UpcomingService {
   id: string
-  dueDate: string
   type: string
-  description: string
+  date: string
+  time: string
+  vehicle: string
+  customer: string
+  dueDate: string
   dueMileage: string
+  description: string
 }
 
 export interface CreateVehicleDto {
@@ -174,8 +217,9 @@ export interface CreateVehicleDto {
   color?: string
   odometer?: string
   customerId: string
-  status?: "active" | "maintenance" | "inactive"
+  status?: string
   notes?: string
+  fuelType?: string // Add this field
 }
 
 export interface UpdateVehicleDto extends Partial<CreateVehicleDto> {
